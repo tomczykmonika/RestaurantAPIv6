@@ -13,6 +13,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using RestaurantAPI.Services;
+using RestaurantAPI.Middleware;
 
 namespace RestaurantAPI
 {
@@ -28,34 +29,35 @@ namespace RestaurantAPI
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            //services.AddSingleton<IWeatherForecastService, WeatherForecastService>();
-            //Bêdziemy mieæ pewnoœæ ¿e dana zale¿noœæ bêd¹ wywo³ana tylko raz podczas ca³ego czasu u¿ywania aplikacji (od uruchomienia do zamkniêcia).
-
-            //services.AddScoped<IWeatherForecastService, WeatherForecastService>();
-            //Ka¿dy obiekt jest tworzony na nowo przy ka¿dym zapytaniu klienta. Na 1 zapytanie bêdziemy mieæ 1 instacjê danego serwisu.
-
-            //services.AddTransient<IWeatherForecastService, WeatherForecastService>();
-            //Obiekty bêd¹ utworzone za ka¿dym razem, kiedy odwo³ujemy siê do nich przez konstruktor.
-
             services.AddControllers();
             services.AddDbContext<RestaurantDbContext>();
             services.AddScoped<RestaurantSeeder>();
-
             services.AddAutoMapper(this.GetType().Assembly);
             services.AddScoped<IRestaurantService, RestaurantService>();
+            services.AddScoped<IDishService, DishService>();
+            services.AddScoped<ErrorHandlingMiddleware>();
+            services.AddScoped<RequestTimeMiddleware>();
+            services.AddSwaggerGen();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, RestaurantSeeder seeder)
         {
             seeder.Seed();
-
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
 
+            app.UseMiddleware<ErrorHandlingMiddleware>();
+            app.UseMiddleware<RequestTimeMiddleware>();
             app.UseHttpsRedirection();
+
+            app.UseSwagger();
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Restaurant API");
+            });
 
             app.UseRouting();
 
@@ -65,6 +67,7 @@ namespace RestaurantAPI
             {
                 endpoints.MapControllers();
             });
+
         }
     }
 }

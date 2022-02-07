@@ -9,8 +9,8 @@ using RestaurantAPI.Entities;
 namespace RestaurantAPI.Migrations
 {
     [DbContext(typeof(RestaurantDbContext))]
-    [Migration("20220206213105_Init2")]
-    partial class Init2
+    [Migration("20220207171016_alterDishColumnId")]
+    partial class alterDishColumnId
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
